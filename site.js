@@ -5,43 +5,44 @@
   const FORM_KEY = 'f831321b-710e-44eb-9a06-760c5bdb8a8d';  // Web3Forms public access key (safe to be in the page)
   const PREVIEW = /claudeusercontent|claude\.ai/.test(location.hostname);  // the Claude preview blocks sending
 
-  // ---- Horizontal gallery ----
+  // ---- Horizontal gallery (endless loop) ----
+  // A copy of the last work sits before the first, and a copy of the first after the last.
+  // Sliding onto a copy is smooth; once it settles we jump invisibly to the real work.
   const wall = document.querySelector('.wall');
   if (wall) {
     const slides = [...wall.querySelectorAll('.slide')];
-    const count = document.querySelector('.count');
+    const n = slides.length;
     const pv = document.querySelector('.arr.pv'), nx = document.querySelector('.arr.nx');
-    let cur = 0;
+    const copy = s => { const c = s.cloneNode(true); c.removeAttribute('id'); c.dataset.real = slides.indexOf(s); c.setAttribute('aria-hidden', 'true'); c.querySelectorAll('img').forEach(i => i.loading = 'eager'); return c; };
+    const headCopy = copy(slides[n - 1]), tailCopy = copy(slides[0]);
+    wall.prepend(headCopy); wall.append(tailCopy);
+    const all = [headCopy, ...slides, tailCopy];          // positions 0 … n+1; real work k is at k+1
+    let pos = 1;
+    const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const go = (i, smooth = true) => {
-      cur = (i + slides.length) % slides.length;
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      wall.scrollTo({ left: slides[cur].offsetLeft, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+    const jump = p => { pos = p; wall.style.scrollSnapType = 'none'; wall.scrollLeft = all[p].offsetLeft; wall.style.scrollSnapType = ''; };
+    const slideTo = p => { pos = p; wall.scrollTo({ left: all[p].offsetLeft, behavior: reduce() ? 'auto' : 'smooth' }); };
+    const settle = () => {
+      const p = Math.round(wall.scrollLeft / wall.clientWidth);
+      if (p === 0) jump(n); else if (p === n + 1) jump(1); else pos = p;
+      try { history.replaceState(null, '', '#' + slides[pos - 1].id); } catch (e) {}
     };
-    const mark = i => {
-      cur = i;
-      if (count) count.textContent = `${i + 1} / ${slides.length}`;
-      try { history.replaceState(null, '', '#' + slides[i].id); } catch (e) {}
-    };
+    let t;
+    wall.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(settle, 140); }, { passive: true });
 
-    // keep counter in sync with swipes / trackpad scrolling
-    const io = new IntersectionObserver(es => es.forEach(en => {
-      if (en.isIntersecting) mark(slides.indexOf(en.target));
-    }), { root: wall, threshold: 0.6 });
-    slides.forEach(s => io.observe(s));
-
-    pv.addEventListener('click', () => go(cur - 1));
-    nx.addEventListener('click', () => go(cur + 1));
+    pv.addEventListener('click', () => slideTo(Math.max(0, pos - 1)));
+    nx.addEventListener('click', () => slideTo(Math.min(n + 1, pos + 1)));
     document.addEventListener('keydown', e => {
-      if (document.querySelector('.eq.open') || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(cur + 1); }
+      if (document.querySelector('.eq.open, .zoom.open') || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); slideTo(Math.max(0, pos - 1)); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); slideTo(Math.min(n + 1, pos + 1)); }
     });
 
-    // open on the work named in the address (#witnesses), if any
-    const start = slides.findIndex(s => '#' + s.id === location.hash);
-    if (start > 0) requestAnimationFrame(() => go(start, false));
-    window.addEventListener('resize', () => go(cur, false));
+    // start on the first work, or the one named in the address (#witnesses)
+    const named = slides.findIndex(s => '#' + s.id === location.hash);
+    const begin = () => jump(named >= 0 ? named + 1 : 1);
+    begin(); requestAnimationFrame(begin);
+    window.addEventListener('resize', () => jump(pos));
   }
 
   // ---- Enquiry pop-up ----
@@ -90,5 +91,21 @@
     box.querySelector('.eq-x').addEventListener('click', close);
     box.addEventListener('click', e => { if (e.target === box) close(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  }
+
+  // ---- Click a work to see it bigger ----
+  {
+    const z = document.createElement('div');
+    z.className = 'zoom'; z.setAttribute('role', 'dialog'); z.setAttribute('aria-modal', 'true'); z.setAttribute('aria-label', 'Enlarged work');
+    z.innerHTML = '<img alt=""><button type="button" aria-label="Close">\u00d7</button>';
+    document.body.append(z);
+    const zi = z.querySelector('img');
+    const shut = () => { z.classList.remove('open'); document.body.style.overflow = ''; };
+    document.querySelectorAll('.slide img').forEach(i => i.addEventListener('click', () => {
+      zi.src = i.src.replace('-sm.jpg', '.jpg'); zi.alt = i.alt;  // full-size file
+      z.classList.add('open'); document.body.style.overflow = 'hidden';
+    }));
+    z.addEventListener('click', shut);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') shut(); });
   }
 }
