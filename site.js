@@ -20,11 +20,22 @@
     let pos = 1;
     const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const jump = p => { pos = p; wall.style.scrollSnapType = 'none'; wall.scrollLeft = all[p].offsetLeft; wall.style.scrollSnapType = ''; };
-    const slideTo = p => { pos = p; wall.scrollTo({ left: all[p].offsetLeft, behavior: reduce() ? 'auto' : 'smooth' }); };
+    // strip of small works: highlight the one on screen, keep it in view
+    const strip = document.querySelector('.strip'), thumbs = strip ? [...strip.children] : [];
+    const mark = p => {
+      const k = (p - 1 + n) % n;
+      thumbs.forEach((b, i) => { b.classList.toggle('on', i === k); b.setAttribute('aria-current', i === k ? 'true' : 'false'); });
+      const b = thumbs[k];
+      if (b && strip.scrollWidth > strip.clientWidth) {
+        strip.scrollTo({ left: b.offsetLeft - (strip.clientWidth - b.offsetWidth) / 2, behavior: reduce() ? 'auto' : 'smooth' });
+      }
+    };
+    const jump = p => { pos = p; wall.style.scrollSnapType = 'none'; wall.scrollLeft = all[p].offsetLeft; wall.style.scrollSnapType = ''; mark(p); };
+    const slideTo = p => { pos = p; mark(p); wall.scrollTo({ left: all[p].offsetLeft, behavior: reduce() ? 'auto' : 'smooth' }); };
+    thumbs.forEach((b, i) => b.addEventListener('click', () => slideTo(i + 1)));
     const settle = () => {
       const p = Math.round(wall.scrollLeft / wall.clientWidth);
-      if (p === 0) jump(n); else if (p === n + 1) jump(1); else pos = p;
+      if (p === 0) jump(n); else if (p === n + 1) jump(1); else { pos = p; mark(p); }
       try { history.replaceState(null, '', '#' + slides[pos - 1].id); } catch (e) {}
     };
     let t;
