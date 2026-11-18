@@ -75,7 +75,7 @@ figcaption b{display:block;font:300 14px/1.3 var(--sans);letter-spacing:.02em;co
 /* about */
 .about{display:grid;grid-template-columns:62vw minmax(0,520px);gap:clamp(24px,4vw,64px);
   align-items:start;padding:0 max(4vw,18px) 120px 0}
-.about .portrait{margin:0;position:sticky;top:72px}
+.about .portrait{margin:0;position:sticky;top:72px;align-self:start}
 .about .portrait img{width:100%;height:auto;display:block;
   -webkit-mask-image:linear-gradient(to right,#000 55%,transparent 99%),linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%);
   -webkit-mask-composite:source-in;
@@ -156,16 +156,11 @@ figcaption b{display:block;font:300 14px/1.3 var(--sans);letter-spacing:.02em;co
   .about .ig svg{width:22px;height:22px}
 }
 
-/* small portrait: under the film still on the left (computer), above Contact (phone) */
-.about .side{display:flex;flex-direction:column}
-.about .portrait{position:static}
-.me{display:block;height:auto}
-.me-side{width:140px;margin:36px 0 0 max(3vw,18px)}
-.meet .me-meet{display:none}
-.meet{margin-top:48px}
+/* small portrait to the right of Contact */
+.meet{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:28px;align-items:start;margin-top:48px}
 .meet h2{margin-top:0}
+.me-meet{display:block;width:140px;height:auto}
 @media (max-width:699px){
-  .me-side{display:none}
-  .meet .me-meet{display:block;width:120px;margin-bottom:16px}
-  .meet{margin-top:40px}
+  .meet{grid-template-columns:minmax(0,1fr) 96px;gap:16px;margin-top:40px}
+  .me-meet{width:96px}
 }
