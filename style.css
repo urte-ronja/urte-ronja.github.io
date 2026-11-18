@@ -60,20 +60,17 @@ figcaption b{display:block;font:400 16px/1.3 var(--sans);color:var(--ink);margin
 @media (min-width:700px){
   .ctl{padding:0}
   .arr{position:absolute;top:calc(50% - 30px);transform:translateY(-50%)}
-  .arr.pv{left:max(1.5vw,10px)}.arr.nx{right:max(1.5vw,10px)}
-  .arr{transition:left .35s ease}
+  .arr.pv{left:max(3.5vw,24px)}.arr.nx{right:max(3.5vw,24px)}
   .arr img{width:34px}
 }
 
 /* about */
-.about{display:grid;grid-template-columns:50vw minmax(0,560px);gap:clamp(24px,4vw,64px);
+.about{display:grid;grid-template-columns:62vw minmax(0,520px);gap:clamp(24px,4vw,64px);
   align-items:start;padding:0 max(4vw,18px) 120px 0}
 .about .portrait{margin:0;position:sticky;top:72px}
 .about .portrait img{width:100%;height:auto;display:block;
-  -webkit-mask-image:linear-gradient(to right,#000 45%,transparent 98%),linear-gradient(to bottom,transparent 0,#000 14%,#000 78%,transparent 100%);
-  -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to right,#000 45%,transparent 98%),linear-gradient(to bottom,transparent 0,#000 14%,#000 78%,transparent 100%);
-  mask-composite:intersect}
+  -webkit-mask-image:linear-gradient(to right,#000 55%,transparent 99%);
+  mask-image:linear-gradient(to right,#000 55%,transparent 99%)}
 .about>div{padding-top:60px}
 .about h1{font:300 30px/1.15 var(--sans);margin:0 0 22px}
 .about p{margin:0 0 16px;max-width:60ch}
