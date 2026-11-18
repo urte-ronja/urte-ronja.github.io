@@ -20,11 +20,22 @@
     let pos = 1;
     const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const jump = p => { pos = p; wall.style.scrollSnapType = 'none'; wall.scrollLeft = all[p].offsetLeft; wall.style.scrollSnapType = ''; };
-    const slideTo = p => { pos = p; wall.scrollTo({ left: all[p].offsetLeft, behavior: reduce() ? 'auto' : 'smooth' }); };
+    // keep the arrows just beside the edges of the current work (wider screens)
+    const place = p => {
+      if (window.innerWidth < 700) { pv.style.left = nx.style.left = nx.style.right = ''; return; }
+      const s = all[p], img = s.querySelector('img'), sr = s.getBoundingClientRect(), ir = img.getBoundingClientRect();
+      if (!ir.width) return;
+      const w = pv.offsetWidth, gap = 6;
+      pv.style.left = Math.max(4, ir.left - sr.left - w - gap) + 'px';
+      nx.style.left = Math.min(wall.clientWidth - w - 4, ir.right - sr.left + gap) + 'px';
+      nx.style.right = 'auto';
+    };
+    const jump = p => { pos = p; wall.style.scrollSnapType = 'none'; wall.scrollLeft = all[p].offsetLeft; wall.style.scrollSnapType = ''; place(p); };
+    const slideTo = p => { pos = p; place(p); wall.scrollTo({ left: all[p].offsetLeft, behavior: reduce() ? 'auto' : 'smooth' }); };
+    all.forEach((s, k) => s.querySelector('img').addEventListener('load', () => { if (k === pos) place(pos); }));
     const settle = () => {
       const p = Math.round(wall.scrollLeft / wall.clientWidth);
-      if (p === 0) jump(n); else if (p === n + 1) jump(1); else pos = p;
+      if (p === 0) jump(n); else if (p === n + 1) jump(1); else { pos = p; place(p); }
       try { history.replaceState(null, '', '#' + slides[pos - 1].id); } catch (e) {}
     };
     let t;
