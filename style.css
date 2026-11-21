@@ -144,7 +144,7 @@ figcaption b{display:block;font:300 14px/1.3 var(--sans);letter-spacing:.02em;co
   /* works sit in the middle of the screen, not at the top */
   body.pg-works{min-height:100svh;display:flex;flex-direction:column}
   .pg-works .works{flex:1;display:flex;flex-direction:column;justify-content:center;padding-top:9svh}
-  .pg-works .ctl{padding:0;margin-top:-6px}
+  .pg-works .ctl{padding:0;margin-top:-6px;gap:84px}
   .pg-works .arr{height:56px}
   .slide img{max-height:62svh}
   /* exhibitions and contact: same softness as the bio, a little smaller */
